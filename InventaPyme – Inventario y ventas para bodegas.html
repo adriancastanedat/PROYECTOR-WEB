@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InventaPyme – Inventario y ventas para bodegas</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#1d2733;--mu:#667585;--br:#d5dde4;--pr:#1f3a5f;--ac:#2a9d8f;--wa:#c0392b;--am:#b7791f;--hd:#1f3a5f;--hdt:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171f;--card:#18222d;--tx:#e6edf3;--mu:#93a1af;--br:#2a3846;--pr:#7fb4e6;--ac:#43c0b0;--wa:#ff7b6b;--am:#e0b04a;--hd:#0b1219;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10171f;--card:#18222d;--tx:#e6edf3;--mu:#93a1af;--br:#2a3846;--pr:#7fb4e6;--ac:#43c0b0;--wa:#ff7b6b;--am:#e0b04a;--hd:#0b1219;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--hd);color:var(--hdt);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;flex:1}header small{opacity:.75;display:block;font-weight:400;font-size:12px}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--br)}
+nav button{flex:0 0 auto;border:1px solid var(--br);background:transparent;color:var(--tx);padding:8px 14px;border-radius:20px;font:inherit;cursor:pointer}
+nav button.on{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+main{max-width:980px;margin:0 auto;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:14px}
+.kpi b{display:block;font-size:24px;color:var(--pr)}.kpi span{color:var(--mu);font-size:13px}
+h2{font-size:16px;margin:0 0 10px;color:var(--pr)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--br);white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:12px;text-transform:uppercase}
+td.n,th.n{text-align:right}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end}
+label{font-size:12px;color:var(--mu);display:block}
+input,select{width:100%;padding:8px;border:1px solid var(--br);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.btn{background:var(--ac);color:#fff;border:0;padding:9px 14px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+.btn.s{background:transparent;color:var(--pr);border:1px solid var(--br);padding:4px 9px;font-weight:500}
+.btn.d{background:transparent;color:var(--wa);border:1px solid var(--br);padding:4px 9px;font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ac)}.lo{color:var(--wa)}.am{color:var(--am)}
+.bar{height:10px;background:var(--ac);border-radius:5px}.empty{color:var(--mu);padding:8px 0}
+.tot{font-size:20px;font-weight:700;color:var(--pr);margin:8px 0}
+.top{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}.top i{flex:0 0 130px;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top div{flex:1}
+</style></head><body>
+<header><h1>InventaPyme<small>Control de inventario y ventas para bodegas y MYPE · prototipo</small></h1>
+<button class="btn s" id="rst" style="color:var(--hdt);border-color:#ffffff55">Restablecer demo</button></header>
+<nav id="nav"></nav><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s);
+const S=n=>"S/ "+(+n).toFixed(2);
+const day=86400000, iso=d=>new Date(d).toISOString().slice(0,10);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function seed(){const t=Date.now(),e=n=>iso(t+n*day);
+ const P=[["Arroz extra 1 kg","Abarrotes",3.2,4.2,40,15,e(300)],["Aceite vegetal 1 L","Abarrotes",7.5,9.5,12,10,e(200)],["Azúcar rubia 1 kg","Abarrotes",3.0,3.9,8,12,e(250)],["Leche evaporada 400 g","Lácteos",3.1,4.0,30,20,e(14)],["Yogurt 1 L","Lácteos",5.2,7.0,6,8,e(5)],["Pan de molde","Panadería",5.5,7.5,10,6,e(4)],["Gaseosa 2 L","Bebidas",5.8,7.5,24,12,e(120)],["Agua mineral 625 ml","Bebidas",1.2,2.0,48,24,e(365)],["Detergente 500 g","Limpieza",4.8,6.5,14,8,e(500)],["Fideos 500 g","Abarrotes",2.1,3.0,35,15,e(280)]];
+ const products=P.map((p,i)=>({id:i+1,name:p[0],cat:p[1],cost:p[2],price:p[3],stock:p[4],min:p[5],exp:p[6]}));
+ const sales=[],moves=[];const ago=n=>t-n*day;
+ [[0,[[1,3],[2,1]]],[1,[[4,2],[7,6]]],[1,[[1,2],[10,3]]],[2,[[7,4],[6,1]]],[3,[[1,5],[3,2]]],[0,[[7,3],[4,1]]]].forEach(([d,it])=>{const items=it.map(([id,q])=>({pid:id,qty:q,price:products[id-1].price}));sales.push({t:ago(d),items,total:items.reduce((a,x)=>a+x.qty*x.price,0)})});
+ return{products,moves,sales,next:11}}
+let st;
+function load(){try{const r=localStorage.getItem("inventapyme-v1");st=r?JSON.parse(r):seed()}catch(e){st=seed()}}
+function save(){try{localStorage.setItem("inventapyme-v1",JSON.stringify(st))}catch(e){}}
+const tabs=[["panel","Panel"],["prod","Productos"],["vent","Ventas"],["mov","Inventario"],["ale","Alertas"]];
+let tab="panel",cart=[],editId=null;
+const prod=id=>st.products.find(p=>p.id==id);
+function alerts(){const lim=Date.now()+30*day;const low=st.products.filter(p=>p.stock<=p.min);const exp=st.products.filter(p=>p.exp&&new Date(p.exp).getTime()<=lim);return{low,exp}}
+function nav(){$("#nav").innerHTML=tabs.map(([k,l])=>`<button class="${k==tab?"on":""}" data-k="${k}">${l}${k=="ale"&&alerts().low.length+alerts().exp.length?" ("+(alerts().low.length+alerts().exp.length)+")":""}</button>`).join("");
+ $("#nav").onclick=e=>{const k=e.target.dataset.k;if(k){tab=k;render()}}}
+function render(){nav();$("#app").innerHTML=({panel:vPanel,prod:vProd,vent:vVent,mov:vMov,ale:vAle})[tab]();bind()}
+function vPanel(){const inv=st.products.reduce((a,p)=>a+p.stock*p.cost,0);const td=new Date().toDateString();const hoy=st.sales.filter(s=>new Date(s.t).toDateString()==td).reduce((a,s)=>a+s.total,0);const tot=st.sales.reduce((a,s)=>a+s.total,0);const util=st.sales.reduce((a,s)=>a+s.items.reduce((b,x)=>b+x.qty*(x.price-(prod(x.pid)?.cost||0)),0),0);const al=alerts();
+ const rev={};st.sales.forEach(s=>s.items.forEach(x=>rev[x.pid]=(rev[x.pid]||0)+x.qty*x.price));
+ const rk=Object.entries(rev).map(([id,v])=>({p:prod(id),v})).filter(r=>r.p).sort((a,b)=>b.v-a.v);const sum=rk.reduce((a,r)=>a+r.v,0)||1;let c=0;rk.forEach(r=>{c+=r.v;r.pct=c/sum;r.cls=r.pct<=.8?"A":r.pct<=.95?"B":"C"});const mx=rk[0]?.v||1;
+ return`<div class="grid"><div class="card kpi"><b>${S(inv)}</b><span>Valor del inventario (a costo)</span></div><div class="card kpi"><b>${S(hoy)}</b><span>Ventas de hoy</span></div><div class="card kpi"><b>${S(util)}</b><span>Utilidad bruta acumulada (${tot?Math.round(util/tot*100):0}% de ${S(tot)})</span></div><div class="card kpi"><b class="${al.low.length?"lo":""}">${al.low.length}</b><span>Productos con stock crítico · ${al.exp.length} por vencer</span></div></div>
+ <div class="card"><h2>Top de productos por ventas y clasificación ABC</h2>${rk.length?rk.slice(0,8).map(r=>`<div class="top"><i>${esc(r.p.name)}</i><div><div class="bar" style="width:${r.v/mx*100}%"></div></div><span>${S(r.v)}</span><span class="tag ${r.cls=="A"?"ok":r.cls=="B"?"am":"lo"}">${r.cls}</span></div>`).join(""):`<div class="empty">Aún no hay ventas registradas.</div>`}<div class="empty" style="font-size:12px">A: productos que generan ~80 % de las ventas · B: siguiente 15 % · C: el resto.</div></div>`}
+function vProd(){const e=st.products.find(p=>p.id==editId)||{};
+ return`<div class="card"><h2>${editId?"Editar producto":"Nuevo producto"}</h2><form id="fp"><div><label>Nombre</label><input name="name" required value="${esc(e.name||"")}"></div><div><label>Categoría</label><input name="cat" value="${esc(e.cat||"")}"></div><div><label>Costo (S/)</label><input name="cost" type="number" step="0.01" min="0" required value="${e.cost??""}"></div><div><label>Precio (S/)</label><input name="price" type="number" step="0.01" min="0" required value="${e.price??""}"></div><div><label>Stock</label><input name="stock" type="number" min="0" required value="${e.stock??""}"></div><div><label>Stock mínimo</label><input name="min" type="number" min="0" required value="${e.min??""}"></div><div><label>Vencimiento</label><input name="exp" type="date" value="${e.exp||""}"></div><div><button class="btn">${editId?"Guardar":"Agregar"}</button></div></form></div>
+ <div class="card"><h2>Productos (${st.products.length})</h2><div class="tw"><table><tr><th>Producto</th><th>Categoría</th><th class="n">Costo</th><th class="n">Precio</th><th class="n">Margen</th><th class="n">Stock</th><th></th></tr>${st.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td class="n">${S(p.cost)}</td><td class="n">${S(p.price)}</td><td class="n">${p.price?Math.round((p.price-p.cost)/p.price*100):0}%</td><td class="n ${p.stock<=p.min?"lo":""}">${p.stock}</td><td><button class="btn s" data-e="${p.id}">Editar</button> <button class="btn d" data-d="${p.id}">Quitar</button></td></tr>`).join("")}</table></div></div>`}
+function vVent(){const tot=cart.reduce((a,x)=>a+x.qty*x.price,0);
+ return`<div class="card"><h2>Registrar venta</h2><form id="fv"><div><label>Producto</label><select name="pid">${st.products.map(p=>`<option value="${p.id}">${esc(p.name)} (stock ${p.stock})</option>`).join("")}</select></div><div><label>Cantidad</label><input name="qty" type="number" min="1" value="1" required></div><div><button class="btn">Agregar</button></div></form>
+ <div class="tw" style="margin-top:10px">${cart.length?`<table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">P. unit.</th><th class="n">Subtotal</th><th></th></tr>${cart.map((x,i)=>`<tr><td>${esc(prod(x.pid).name)}</td><td class="n">${x.qty}</td><td class="n">${S(x.price)}</td><td class="n">${S(x.qty*x.price)}</td><td><button class="btn d" data-r="${i}">×</button></td></tr>`).join("")}</table>`:`<div class="empty">El carrito está vacío.</div>`}</div>
+ <div class="tot">Total a cobrar: ${S(tot)}</div><button class="btn" id="cob" ${cart.length?"":"disabled"}>Cobrar y descontar stock</button></div>
+ <div class="card"><h2>Últimas ventas</h2>${st.sales.length?`<div class="tw"><table><tr><th>Fecha</th><th>Detalle</th><th class="n">Total</th></tr>${st.sales.slice(-8).reverse().map(s=>`<tr><td>${new Date(s.t).toLocaleString("es-PE",{dateStyle:"short",timeStyle:"short"})}</td><td>${s.items.map(x=>esc(prod(x.pid)?.name||"—")+" ×"+x.qty).join(", ")}</td><td class="n">${S(s.total)}</td></tr>`).join("")}</table></div>`:`<div class="empty">Sin ventas.</div>`}</div>`}
+function vMov(){return`<div class="card"><h2>Registrar movimiento de inventario</h2><form id="fm"><div><label>Producto</label><select name="pid">${st.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></div><div><label>Tipo</label><select name="type"><option value="in">Entrada (compra)</option><option value="out">Salida</option><option value="merma">Merma / vencido</option></select></div><div><label>Cantidad</label><input name="qty" type="number" min="1" value="1" required></div><div><label>Nota</label><input name="note" placeholder="Proveedor, motivo…"></div><div><button class="btn">Registrar</button></div></form></div>
+ <div class="card"><h2>Historial de movimientos</h2>${st.moves.length?`<div class="tw"><table><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="n">Cant.</th><th>Nota</th></tr>${st.moves.slice(-15).reverse().map(m=>`<tr><td>${new Date(m.t).toLocaleString("es-PE",{dateStyle:"short",timeStyle:"short"})}</td><td>${esc(prod(m.pid)?.name||"—")}</td><td>${{in:"Entrada",out:"Salida",merma:"Merma",venta:"Venta"}[m.type]}</td><td class="n">${m.type=="in"?"+":"−"}${m.qty}</td><td>${esc(m.note||"")}</td></tr>`).join("")}</table></div>`:`<div class="empty">Aún no hay movimientos.</div>`}</div>`}
+function vAle(){const a=alerts();const d=x=>Math.ceil((new Date(x).getTime()-Date.now())/day);
+ return`<div class="card"><h2>Stock en o bajo el mínimo (${a.low.length})</h2>${a.low.length?`<div class="tw"><table><tr><th>Producto</th><th class="n">Stock</th><th class="n">Mínimo</th><th class="n">Sugerido comprar</th></tr>${a.low.map(p=>`<tr><td>${esc(p.name)}</td><td class="n lo">${p.stock}</td><td class="n">${p.min}</td><td class="n">${Math.max(p.min*2-p.stock,1)}</td></tr>`).join("")}</table></div>`:`<div class="empty ok">Todo el stock está sobre el mínimo.</div>`}</div>
+ <div class="card"><h2>Por vencer en 30 días (${a.exp.length})</h2>${a.exp.length?`<div class="tw"><table><tr><th>Producto</th><th class="n">Stock</th><th>Vence</th><th>Estado</th></tr>${a.exp.map(p=>`<tr><td>${esc(p.name)}</td><td class="n">${p.stock}</td><td>${p.exp}</td><td><span class="tag ${d(p.exp)<0?"lo":"am"}">${d(p.exp)<0?"Vencido":d(p.exp)+" días"}</span></td></tr>`).join("")}</table></div>`:`<div class="empty ok">No hay productos próximos a vencer.</div>`}</div>`}
+function bind(){const q=s=>document.querySelector(s);
+ if(q("#fp"))q("#fp").onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const o={name:f.name.trim(),cat:f.cat.trim()||"General",cost:+f.cost,price:+f.price,stock:+f.stock,min:+f.min,exp:f.exp};if(editId){Object.assign(prod(editId),o);editId=null}else st.products.push({id:st.next++,...o});save();render()};
+ document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{editId=+b.dataset.e;render();scrollTo(0,0)});
+ document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{if(confirm("¿Quitar este producto?")){st.products=st.products.filter(p=>p.id!=b.dataset.d);cart=cart.filter(x=>x.pid!=b.dataset.d);save();render()}});
+ if(q("#fv"))q("#fv").onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const p=prod(f.pid),qty=+f.qty;const ya=cart.filter(x=>x.pid==p.id).reduce((a,x)=>a+x.qty,0);if(qty+ya>p.stock){alert("Stock insuficiente: quedan "+p.stock+" unidades de "+p.name);return}cart.push({pid:p.id,qty,price:p.price});render()};
+ document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{cart.splice(+b.dataset.r,1);render()});
+ if(q("#cob"))q("#cob").onclick=()=>{const t=Date.now();cart.forEach(x=>{prod(x.pid).stock-=x.qty;st.moves.push({t,pid:x.pid,type:"venta",qty:x.qty,note:"Venta"})});st.sales.push({t,items:cart.map(x=>({...x})),total:cart.reduce((a,x)=>a+x.qty*x.price,0)});cart=[];save();render()};
+ if(q("#fm"))q("#fm").onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const p=prod(f.pid),qty=+f.qty;if(f.type!="in"&&qty>p.stock){alert("No hay stock suficiente");return}p.stock+=f.type=="in"?qty:-qty;st.moves.push({t:Date.now(),pid:p.id,type:f.type,qty,note:f.note});save();render()}}
+$("#rst").onclick=()=>{if(confirm("¿Restablecer los datos de demostración?")){st=seed();cart=[];editId=null;save();render()}};
+load();render();
+</script></body></html>
